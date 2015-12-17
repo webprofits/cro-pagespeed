@@ -1,170 +1,177 @@
 <?php namespace App\Http\Controllers;
 
-use PageSpeed\Insights\Service as PageSpeed;
+use App\Http\Requests;
+use Illuminate\Http\Request;
+
+use App\Services\PageSpeedService;
+use \Session, \Log, \Redirect, \Input;
 
 class PageSpeedController extends Controller {
 
-    private $hideItemsWithoutScores = true;
+    private $version_override = null;
+    private $defaultInputs = array (
+        'email' => 'email.was.empty@webprofits.com.au',
+        'url' => 'http://www.webprofits.com.au/'
+    );
 
-    function endpoint()
+    /**
+     * @var \Illuminate\Http\Request
+     */
+    private $request;
+    private $input = array();
+    private $results = array();
+
+    public function __construct(Request $request)
     {
-        // get the URL to post...
+        $this->request = $request;
+    }
+
+    /**
+     * Override the default input from Http\Request\Input
+     *
+     * @param $key
+     * @param $value
+     */
+    private function setInput($key, $value)
+    {
+        $this->input[$key] = $value;
+    }
+
+    /**
+     * Get the input from our local overrides, if not set, then from  Http\Request\Input
+     *
+     * @param $key
+     * @param null $default
+     * @return string
+     */
+    private function getInput($key, $default = null)
+    {
+        if ($default === null && isset($this->defaultInputs[$key]))
+            $default = $this->defaultInputs[$key];
+
+        // Allow other functions to override what the input is going to be
+        // without messing with any of the flash data.
+        if (!empty($this->input[$key]))
+            return $this->input[$key];
+
+        return trim($this->request->input($key, $default));
+    }
+
+    public function resultsInfusion2(PageSpeedService $pagespeed)
+    {
+        $this->version_override = 2;
+        return $this->resultsInfusion($pagespeed);
+    }
+
+    public function results2(PageSpeedService $pagespeed)
+    {
+        $this->version_override = 2;
+        return $this->results($pagespeed);
+    }
+
+
+    /**
+     * Flash the old inputs from the Infusionsoft response,
+     * then pretend our request is a POST instead, with all the old information!
+     *
+     * @param PageSpeedService $pagespeed injected by router
+     * @return Response
+     */
+    public function resultsInfusion(PageSpeedService $pagespeed)
+    {
+        $request = &$this->request;
+
+        $this->setInput('url', $request->input('inf_field_Website', 'http://www.webprofits.com.au'));
+        $this->setInput('email', $request->input('inf_field_Email', 'email.was.empty@webprofits.com.au'));
+        $this->setInput('first_name', $request->input('inf_field_FirstName', 'Firstname'));
+
+        return $this->results($pagespeed);
+    }
+
+	/**
+	 * Display a listing of the resource.
+	 *
+     * @param PageSpeedService $pagespeed injected by router
+	 * @return Response
+	 */
+	public function results(PageSpeedService $pagespeed)
+    {
+        $url = $this->getInput('url', 'http://www.webprofits.com.au');
+        $email = $this->getInput('email');
+        $first_name = $this->getInput('first_name');
+
         try {
-            $url = 'http://www.smh.com.au';
-            return $this->getResults($url);
+            $results = $pagespeed->getResultsCache($url);
+            $results['url'] = $url;
+            $results['email'] = $email;
+            $results['first_name'] = $first_name;
         } catch (\Exception $e) {
-            \Log::info($e);
-            return \Response::JSON(array(
-                'error' => true,
-                'message' => $e->getMessage()
-            ));
+            Log::error("[ERROR] There was an error getting the pagespeed info for [$url]");
+            Log::error($e);
+
+            return $this->renderErrorResults();
         }
+
+        $results['total'] = $results['ruleGroups']['SPEED']['score'] + $results['ruleGroups']['USABILITY']['score'];
+
+        $this->results = $results;
+        return $this->returnView();
     }
 
-    private function validateDomain($domain)
+    public function whatType($ruleImpact) {
+        if ($ruleImpact > 15)
+            return 'should';
+        return 'consider';
+    }
+
+    public function returnView()
     {
-        $this->addValidator();
-
-        $v = Validator::make(array('domain' => $domain), array(
-            'domain' => 'required:validdomain'
-        )
-    }
-
-    private function addValidator()
-    {
-        Validator::extend('validdomain', function($attribute, $value, $parameters)
-        {
-            $ok = preg_match(
-                '/^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}(\.(xn--)?([a-z0-9]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,}))*$/',
-                $value
-            );
-
-            if (strpos($value, '.') === false)
-                return false;
-
-            return $ok;
-        });
-    }
-
-    private function getResults($url) {
-        $extra_parameters = array(
-            'screenshot' => 'true'
-        );
-
-        $pageSpeed = new PageSpeed();
-        try {
-            $results = $pageSpeed->getResults($url, 'en_US', 'mobile', $extra_parameters);
-        } catch (RuntimeException $e) {
-            throw new Exception("Something went wrong :<");
-        }
-
-        if (!isset($results['formattedResults'])) {
-            throw new Exception("Something went wrong :<");
-        }
-
-        $newResults = $this->cleanUpPageSpeedResults($results);
-
-        // Decode that screenshot!
-        if (isset($results['screenshot'])) {
-            $screenshot_filename = 'webprofits_' . md5($url . '__!__' . time()) . '.jpg';
-            $screenshot = str_replace(array('_', '-'), array('/', '+'), $results['screenshot']['data']);
-            $jpg = base64_decode($screenshot);
-
-            file_put_contents($screenshot_filename, $jpg);
-            unset ($results['screenshot']);
-            unset ($newResults['screenshot']);
-            unset ($screenshot);
-            unset ($jpg);
-
-            $newResults['screenshot'] = $screenshot_filename;
-        }
-
-        return \Response::JSON($newResults);
-    }
-
-    private function cleanUpPageSpeedResults(&$results) {
-        $newResults = $results;
-        $formatted = $results['formattedResults']['ruleResults'];
-        unset($newResults['formattedResults']);
-        unset($newResults['version']);
-
-        /**
-         * Find out which results will have the greatest impact.
-         */
-        $scores = array();
-        $items = array();
-        foreach ($formatted as $name => $result) {
-            if ((isset($result['ruleImpact'])) &&
-                (!$this->hideItemsWithoutScores || $result['ruleImpact'] > 0) &&
-                ((isset($result['summary']) && isset($result['summary']['format']) &&
-                    strlen($result['summary']['format']) > 10)
+        $version = $this->getVersion();
+        if ($this->getShouldShowFullView()) {
+            return view(
+                'pagespeed.results', array(
+                    'results' => $this->results,
+                    'version' => $version
                 )
-            ) {
-                $item = $result;
-                // Get rid of some (unrequired) information...
-                if (isset($item['urlBlocks'])) {
-                    unset($item['urlBlocks']);
-                }
-
-                /**
-                 * Replace any of the parameters...
-                 */
-
-                if (isset($item['summary'])) {
-                    $item['summary'] = $this->cleanSummary($item);
-                }
-
-                $item['rule_name'] = $item['localizedRuleName'];
-                unset($item['localizedRuleName']);
-                unset($item['groups']);
-
-                /**
-                 * Throw all of the rule impacts into the array...
-                 */
-                $scores[] = $result['ruleImpact'];
-                $items[] = $item;
-            }
+            );
         }
 
-        array_multisort($scores, SORT_DESC, $items);
-
-        $newResults['messages'] = $items;
-
-        $newResults['error'] = false;
-
-        //return \Response::json($newResults);
-        return $newResults;
-    }
-
-    private function cleanSummary(&$item) {
-        $args = array();
-        if (isset($item['summary']['args'])) {
-            $args = $item['summary']['args'];
-        }
-
-        return $this->parseSummary($item, $args);
-    }
-
-    private function parseSummary(&$item, $args) {
-        $count = 0;
-        return preg_replace_callback('|\{\{([A-Z\_]*)\}\}|',
-            function ($matches) use ($item, &$count, $args) {
-                $key_name = $matches[1];
-                if (count($args) == 0) {
-                    return '';
-                }
-
-                if (!isset($args[$count])) {
-                    return '';
-                }
-
-                if ($args[$count]['key'] == $key_name) {
-                    return $args[$count]['value'];
-                }
-
-                return '';
-            },
-            $item['summary']['format']
+        return view(
+            'pagespeed.domain_section', array(
+                'results' => $this->results,
+                'version' => $version
+            )
         );
+    }
+
+    private function getShouldShowFullView()
+    {
+        $view = Input::get('view');
+        if (!empty($view) && $view = 'ajax') {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getVersion()
+    {
+        if ($this->version_override !== null)
+            return $this->version_override;
+        $version = Input::get('v');
+        if ($version == '2')
+            return 2;
+
+        return 1;
+    }
+
+    public function renderErrorResults() {
+        return Redirect::to('/')
+            ->withErrors(array(
+                'url' => 'Please check that the domain has been entered correctly. '.
+                    'It might be a firewall, we could not connect to the site.'
+            ))
+            ->withInput()
+            ->with($this->input);
     }
 }

@@ -26,11 +26,26 @@ class WelcomeController extends Controller {
 	/**
 	 * Show the application welcome screen to the user.
 	 *
-	 * @return Response
+	 * @return \Response
 	 */
-	public function index()
+	public function index($version = 1)
 	{
-		return view('welcome');
+        $version = 'pagespeed.welcome';
+        if ($version == 2)
+            $version = 'pagespeed.welcome_v2';
+
+		return view('pagespeed.welcome', array(
+            'version' => $version
+        ));
 	}
 
+    /**
+     * Show the second application welcome screen to the user (for split tests!).
+     *
+     * @return \Response
+     */
+    public function index_two()
+    {
+        return $this->index(2);
+    }
 }
