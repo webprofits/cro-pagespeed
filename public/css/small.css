@@ -1,0 +1,60 @@
+@charset "utf-8";
+/* CSS Document */
+.break { display:none;}
+
+.hide_mob {display: none;}
+.mobile_site_holder {margin-right: 0; margin-left: 0; padding: 45px 20px 50px;}
+.site_input {padding-right: 0; max-width: none;}
+.nxt {position: relative; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; height: 59px; width: 170px; font-size: 24px;}
+.nb_right {
+border-right: 1px solid #e5e5e5;
+-webkit-border-top-right-radius: 5px;
+-webkit-border-bottom-right-radius: 5px;
+-moz-border-radius-topright: 5px;
+-moz-border-radius-bottomright: 5px;
+border-top-right-radius: 5px;
+border-bottom-right-radius: 5px;
+}
+h1 {font-size: 38px; line-height: 50px;}
+.sub_h {font-size: 25px; line-height: 33px;}
+.testimonial {font-size: 30px;line-height: 42px;}
+
+.grey_section {padding: 40px 0 50px;}
+.experience_score, .cro_score {right: -67px;}
+.speed_score {left: -72px;}
+.rate_experience img, .rate_cro img {max-width: 100%;}
+.grey_section h1 {font-size: 44px;}
+.score {font-size: 42px}
+.issues br {display: none;}
+.white_section {padding-top: 40px;}
+.rate_cro {padding-top: 30px;}
+.get_free {margin-bottom: 50px;}
+.form_holder {max-width: none;}
+.grey_section.last_section {padding-top: 24px;}
+.last_section h4 {font-size: 30px; line-height: 35px;}
+
+
+.mobile-form .input-big { width:280px; height:50px}
+.mobile-form .input-big input { width:220px }
+.mobile-form .input-big.website { background:url(../images/mobile-input-big-website.jpg) no-repeat}
+.mobile-form .input-big.job { background:url(../images/mobile-input-big-job.jpg) no-repeat}
+.mobile-form .input-big.email { background:url(../images/mobile-input-big-email.jpg) no-repeat}
+.mobile-form .input-big.name { background:url(../images/mobile-input-big-name.jpg) no-repeat}
+.mobile-form .input-big.company { background:url(../images/mobile-input-big-company.jpg) no-repeat}
+.mobile-form .input-big.phone { background:url(../images/mobile-input-big-phone.jpg) no-repeat}
+.mobile-form .input-small { background:url(../images/mobile-input-small.jpg) no-repeat; width:280px}
+.mobile-form .input-small input { width:246px}
+
+.form-wrapper .infusion-captcha img { float:none !important; margin:0 auto 7px auto !important; display:block}
+
+.form-wrapper .input-message.tall { background:url(../images/mobile-textarea.jpg) no-repeat; width:280px; height:132px}
+.form-wrapper .input-message.tall textarea { padding:18px 10px 14px 50px; width:220px; height:101px}
+.mobile-form  .input-small { float:none}
+
+.form-wrapper .infusion-captcha { width:auto}
+
+.form-wrapper #contact-us span.infusion-option { width:auto}
+
+.desktop-form { display:none !important}
+.mobile-form { display:block !important}
+

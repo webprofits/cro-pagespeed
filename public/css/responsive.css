@@ -1,0 +1,13 @@
+.mobile-form .input-big { width:280px; height:50px}
+.mobile-form .input-big input { width:220px }
+.mobile-form .input-big.website { background:url(../images/mobile-input-big-website.jpg) no-repeat}
+.mobile-form .input-big.job { background:url(../images/mobile-input-big-job.jpg) no-repeat}
+.mobile-form .input-big.email { background:url(../images/mobile-input-big-email.jpg) no-repeat}
+.mobile-form .input-big.name { background:url(../images/mobile-input-big-name.jpg) no-repeat}
+.mobile-form .input-big.company { background:url(../images/mobile-input-big-company.jpg) no-repeat}
+.mobile-form .input-big.phone { background:url(../images/mobile-input-big-phone.jpg) no-repeat}
+.mobile-form .input-small { background:url(../images/mobile-input-small.jpg) no-repeat; width:280px}
+.mobile-form .input-small input { width:246px}
+
+.form-wrapper .infusion-captcha img { float:none !important; margin:0 auto 7px auto !important; display:block}
+

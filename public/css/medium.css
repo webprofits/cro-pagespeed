@@ -1,0 +1,14 @@
+@charset "utf-8";
+/* CSS Document */
+.content { padding-right:20px !important; padding-left:20px !important;}
+.testimonial br {display: none;}
+
+.info_section {padding-right: 0;}
+.phone_view {position: relative;top: 0;right: 0;margin: 48px auto 0 auto; height: 520px;}
+.form_holder {position: relative;top: 0;right: 0;margin: 34px auto 60px;}
+.analyze {padding-right: 0;}
+.red_arrow {display: none;}
+.get_free {margin-right: 0;}
+.more_right {width: auto;}
+.shown {padding-right: 15px;}
+.last_section h4 br, .last_section p br {display: none;}

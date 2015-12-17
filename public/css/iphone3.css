@@ -1,0 +1,21 @@
+@charset "utf-8";
+/* CSS Document */
+
+.logo {float: none; text-align: center; margin-bottom: 12px;}
+.call_us_wr {float: none; text-align: center;}
+
+h1 {font-size: 29px; line-height: 44px;}
+.sub_h {font-size: 22px; line-height: 29px;}
+.testimonial {font-size: 28px;line-height: 40px;}
+h3 {font-size: 28px; line-height: 34px;}
+.author_wr {text-align: center;}
+.author_wr img.left {float: none; margin-right: 0; margin-bottom: 10px;}
+.author.left {float: none;}
+
+.grey_section h1 {font-size: 35px;line-height: 44px;}
+.score {font-size: 33px;line-height: 36px;}
+.phone_view {display: none;}
+.score_title span {display: block; float: none;}
+.get_free {display: none;}
+h5 {font-size: 21px; line-height: 28px;}
+.last_section h4 {font-size: 26px;line-height: 32px;}
